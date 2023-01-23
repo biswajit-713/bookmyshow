@@ -1,8 +1,9 @@
-package com.scaler.lld.bookmyshow.movie;
+package com.scaler.lld.bookmyshow.model.movie;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
-import org.hibernate.procedure.spi.ParameterRegistrationImplementor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
@@ -23,9 +24,11 @@ public class Movie {
     @Column(name = "RUN_TIME")
     private int durationInMinute;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "MOVIE_ACTOR",
             joinColumns = {@JoinColumn(name = "MOVIE_ID", referencedColumnName = "id", nullable = false, updatable = false)},
             inverseJoinColumns = {@JoinColumn(name = "ACTOR_ID", referencedColumnName = "id", nullable = false, updatable = false)})
     private Set<Actor> actors;
+
+
 }

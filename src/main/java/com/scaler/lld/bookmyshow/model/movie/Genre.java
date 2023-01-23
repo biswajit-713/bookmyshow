@@ -1,4 +1,4 @@
-package com.scaler.lld.bookmyshow.movie;
+package com.scaler.lld.bookmyshow.model.movie;
 
 public enum Genre {
     ACTION,

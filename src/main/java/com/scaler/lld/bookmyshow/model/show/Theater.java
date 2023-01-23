@@ -1,6 +1,9 @@
 package com.scaler.lld.bookmyshow.model.show;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -16,10 +19,11 @@ public class Theater {
 
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "CITY_ID")
     private City city;
 
-    @OneToMany(mappedBy = "theater", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "theater")
     private Set<Auditorium> auditoriums;
+
 }
