@@ -8,8 +8,9 @@ import com.scaler.lld.bookmyshow.model.show.Ticket;
 import com.scaler.lld.bookmyshow.model.show.TicketStatus;
 import com.scaler.lld.bookmyshow.repository.TicketRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +28,7 @@ public class TicketService {
         this.ticketRepository = ticketRepository;
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Ticket book(Long movieId, Long showId, List<Long> seatIds) throws SeatUnavailableException {
 
         showService.blockSeats(showId, seatIds);
@@ -47,7 +48,6 @@ public class TicketService {
         ticket.setPrice(ticketPrice.getValue());
         ticket.setBookingTime(LocalDateTime.now());
 
-        Ticket ticketInProgress = ticketRepository.save(ticket);
-        return ticketInProgress;
+        return ticketRepository.save(ticket);
     }
 }

@@ -17,6 +17,9 @@ import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -64,14 +67,15 @@ public class BookMyShowApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-//		todo - create a movie
+//		create a movie
 		Movie movie = new Movie();
 		movie.setTitle("spiderman: no way home");
 		movie.setGenre(Genre.ACTION);
 		movie.setDurationInMinute(124);
 		movie.setActors(Set.of(new Actor("peter parker"), new Actor("happy hogan")));
 		Movie savedMovie = movieRepository.save(movie);
-//		todo - create city, theater
+
+//		create city, theater
 		City bhubaneswar = new City("bhubaneswar");
 		City savedCity = cityRepository.save(bhubaneswar);
 		Long savedCityId = savedCity.getId();
@@ -82,20 +86,20 @@ public class BookMyShowApplication implements CommandLineRunner {
 		Theater savedTheater = theaterRepository.save(theater);
 		Long savedTheaterId = savedTheater.getId();
 
-//		todo - add auditorium to a theater
+//		add auditorium to a theater
 		Auditorium auditorium = new Auditorium();
 		auditorium.setName("screen 1");
 		auditorium.setTheater(theaterRepository.findById(savedTheaterId).get());
 		auditorium.setFeatures(Set.of(Feature.THREE_D, Feature.DOLBY));
 		Auditorium savedAuditorium = auditoriumRepository.save(auditorium);
 
-//		todo - create 3 seat types: vip, gold and platinum
+//		create 3 seat types: vip, gold and platinum
 		SeatType vip = new SeatType("vip");
 		SeatType gold = new SeatType("gold");
 		SeatType platinum = new SeatType("platinum");
 		seatTypeRepository.saveAll(Set.of(vip, gold, platinum));
 
-		//		todo - create 50 seats in the auditorium
+//		create 30 seats in the auditorium
 		List<Seat> vipSeats = IntStream.range(1, 11).mapToObj(i ->
 				new Seat("A" + i, 1, i, seatTypeRepository.findFirstByName("vip"),
 						auditoriumRepository.findById(savedAuditorium.getId()).get())).collect(Collectors.toList());
@@ -131,10 +135,26 @@ public class BookMyShowApplication implements CommandLineRunner {
 		List<ShowSeatType> showSeatTypes = List.of(eveningShowVip, eveningShowGold, eveningShowPlatinum);
 		showSeatTypeRepository.saveAll(showSeatTypes);
 
-		//		todo - book a ticket
-		BookTicketRequestDto bookTicketRequestDto = new BookTicketRequestDto(
-				savedMovie.getId(), savedShow.getId(), List.of(Long.valueOf(1), Long.valueOf(2), Long.valueOf(3)));
-		BookTicketResponseDto bookTicketResponseDto = ticketController.book(bookTicketRequestDto);
-		System.out.println(bookTicketResponseDto);
+
+//		todo - try booking two requests in parallel with overlapping seats
+		BookTicketRequestDto ticketFor3 = new BookTicketRequestDto(
+				savedMovie.getId(), savedShow.getId(), List.of(1L, 2L, 3L));
+		BookTicketRequestDto ticketFor2 = new BookTicketRequestDto(
+				savedMovie.getId(), savedShow.getId(), List.of(3L, 4L));
+
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		Callable<BookTicketResponseDto> bookTicketFor3 = () -> {
+			BookTicketResponseDto book = ticketController.book(ticketFor3);
+			System.out.println(book);
+			return book;
+		};
+
+		Callable<BookTicketResponseDto> bookTicketFor2 = () -> {
+			BookTicketResponseDto book = ticketController.book(ticketFor2);
+			System.out.println(book);
+			return book;
+		};
+		executorService.submit(bookTicketFor3);
+		executorService.submit(bookTicketFor2);
 	}
 }

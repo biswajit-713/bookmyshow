@@ -28,9 +28,11 @@ public class ShowService {
 
     public void blockSeats(Long showId, List<Long> seatIds) throws SeatUnavailableException {
 //        todo - the below 2 statements can be combined into one repository query
-        List<ShowSeat> showSeats = showSeatRepository.findByShowId(showId);
-        List<ShowSeat> requestSeats = showSeats.stream()
-                .filter(showSeat -> seatIds.contains(showSeat.getSeat().getId())).toList();
+//        List<ShowSeat> showSeats = showSeatRepository.findByShowId(showId);
+//        List<ShowSeat> requestSeats = showSeats.stream()
+//                .filter(showSeat -> seatIds.contains(showSeat.getSeat().getId())).toList();
+
+        List<ShowSeat> requestSeats = showSeatRepository.findByShowIdAndSeatIdIn(showId, seatIds);
 
         Optional<ShowSeat> anyUnavailableSeat = requestSeats.stream()
                 .filter(showSeat -> showSeat.getBookingStatus() != BookingStatus.AVAILABLE)
@@ -41,7 +43,7 @@ public class ShowService {
         }
 
         requestSeats.forEach(showSeat -> showSeat.setBookingStatus(BookingStatus.LOCKED));
-        showSeatRepository.saveAll(showSeats);
+        List<ShowSeat> savedShowSeats = showSeatRepository.saveAll(requestSeats);
     }
 
     public Price totalPriceFor(Long showId, List<Long> seatIds) {

@@ -27,6 +27,7 @@ public class TicketController {
             Ticket bookedTicket = ticketService.book(bookTicketRequestDto.getMovieId(), bookTicketRequestDto.getShowId(), bookTicketRequestDto.getSeatIds());
             return new BookTicketResponseDto(bookedTicket.getReferenceId(), bookedTicket.getBookingTime(), bookedTicket.getTicketStatus());
         } catch (SeatUnavailableException e) {
+            e.printStackTrace();
             return null;
         }
     }
