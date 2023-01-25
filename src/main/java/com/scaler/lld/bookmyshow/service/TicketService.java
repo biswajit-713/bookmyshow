@@ -28,7 +28,7 @@ public class TicketService {
         this.ticketRepository = ticketRepository;
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Ticket book(Long movieId, Long showId, List<Long> seatIds) throws SeatUnavailableException {
 
         showService.blockSeats(showId, seatIds);
