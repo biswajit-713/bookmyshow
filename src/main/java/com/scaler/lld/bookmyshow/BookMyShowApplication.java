@@ -82,14 +82,14 @@ public class BookMyShowApplication implements CommandLineRunner {
 
 		Theater theater = new Theater();
 		theater.setName("inox regalia");
-		theater.setCity(cityRepository.findById(savedCityId).get());
+		theater.setCity(cityRepository.getReferenceById(savedCityId));
 		Theater savedTheater = theaterRepository.save(theater);
 		Long savedTheaterId = savedTheater.getId();
 
 //		add auditorium to a theater
 		Auditorium auditorium = new Auditorium();
 		auditorium.setName("screen 1");
-		auditorium.setTheater(theaterRepository.findById(savedTheaterId).get());
+		auditorium.setTheater(theaterRepository.getReferenceById(savedTheaterId));
 		auditorium.setFeatures(Set.of(Feature.THREE_D, Feature.DOLBY));
 		Auditorium savedAuditorium = auditoriumRepository.save(auditorium);
 
@@ -102,13 +102,13 @@ public class BookMyShowApplication implements CommandLineRunner {
 //		create 30 seats in the auditorium
 		List<Seat> vipSeats = IntStream.range(1, 11).mapToObj(i ->
 				new Seat("A" + i, 1, i, seatTypeRepository.findFirstByName("vip"),
-						auditoriumRepository.findById(savedAuditorium.getId()).get())).collect(Collectors.toList());
+						auditoriumRepository.getReferenceById(savedAuditorium.getId()))).collect(Collectors.toList());
 		List<Seat> goldSeats = IntStream.range(1, 11).mapToObj(i ->
 				new Seat("B" + i, 2, i, seatTypeRepository.findFirstByName("gold"),
-						auditoriumRepository.findById(savedAuditorium.getId()).get())).collect(Collectors.toList());
+						auditoriumRepository.getReferenceById(savedAuditorium.getId()))).collect(Collectors.toList());
 		List<Seat> platinumSeats = IntStream.range(1, 11).mapToObj(i ->
 				new Seat("C" + i, 3, i, seatTypeRepository.findFirstByName("platinum"),
-						auditoriumRepository.findById(savedAuditorium.getId()).get())).collect(Collectors.toList());
+						auditoriumRepository.getReferenceById(savedAuditorium.getId()))).collect(Collectors.toList());
 
 		List<Seat> seats = Stream.of(vipSeats, goldSeats, platinumSeats).flatMap(Collection::stream).toList();
 		seatRepository.saveAll(seats);
@@ -116,22 +116,23 @@ public class BookMyShowApplication implements CommandLineRunner {
 // 		create a show
 		Show eveningShow = new Show();
 		eveningShow.setName("evening show");
-		eveningShow.setAuditorium(auditoriumRepository.findById(savedAuditorium.getId()).get());
+		eveningShow.setAuditorium(auditoriumRepository.getReferenceById(savedAuditorium.getId()));
 		eveningShow.setFeatures(List.of(Feature.THREE_D, Feature.FOUR_D_MAX));
-		eveningShow.setMovie(movieRepository.findById(savedMovie.getId()).get());
+		eveningShow.setMovie(movieRepository.getReferenceById(savedMovie.getId()));
 		eveningShow.setStartTime(LocalTime.of(18, 0));
 		eveningShow.setEndTime(LocalTime.of(21, 00));
 		Show savedShow = showRepository.save(eveningShow);
 
 //		add show seats
 		List<Seat> screen1Seats = seatRepository.findByAuditoriumId(savedAuditorium.getId());
-		List<ShowSeat> showSeats = screen1Seats.stream().map(seat -> new ShowSeat(showRepository.findById(savedShow.getId()).get(), seat, BookingStatus.AVAILABLE)).toList();
+		List<ShowSeat> showSeats = screen1Seats.stream().map(seat ->
+				new ShowSeat(showRepository.getReferenceById(savedShow.getId()), seat, BookingStatus.AVAILABLE)).toList();
 		showSeatRepository.saveAll(showSeats);
 
 //		add show price for each seat type
-		ShowSeatType eveningShowVip = new ShowSeatType(showRepository.findById(savedShow.getId()).get(), seatTypeRepository.findFirstByName("vip"), 200);
-		ShowSeatType eveningShowGold = new ShowSeatType(showRepository.findById(savedShow.getId()).get(), seatTypeRepository.findFirstByName("gold"), 300);
-		ShowSeatType eveningShowPlatinum = new ShowSeatType(showRepository.findById(savedShow.getId()).get(), seatTypeRepository.findFirstByName("platinum"), 500);
+		ShowSeatType eveningShowVip = new ShowSeatType(showRepository.getReferenceById(savedShow.getId()), seatTypeRepository.findFirstByName("vip"), 200);
+		ShowSeatType eveningShowGold = new ShowSeatType(showRepository.getReferenceById(savedShow.getId()), seatTypeRepository.findFirstByName("gold"), 300);
+		ShowSeatType eveningShowPlatinum = new ShowSeatType(showRepository.getReferenceById(savedShow.getId()), seatTypeRepository.findFirstByName("platinum"), 500);
 		List<ShowSeatType> showSeatTypes = List.of(eveningShowVip, eveningShowGold, eveningShowPlatinum);
 		showSeatTypeRepository.saveAll(showSeatTypes);
 
@@ -140,7 +141,7 @@ public class BookMyShowApplication implements CommandLineRunner {
 		BookTicketRequestDto ticketFor3 = new BookTicketRequestDto(
 				savedMovie.getId(), savedShow.getId(), List.of(1L, 2L, 3L));
 		BookTicketRequestDto ticketFor2 = new BookTicketRequestDto(
-				savedMovie.getId(), savedShow.getId(), List.of(3L, 4L));
+				savedMovie.getId(), savedShow.getId(), List.of(4L, 3L));
 
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
 		Callable<BookTicketResponseDto> bookTicketFor3 = () -> {

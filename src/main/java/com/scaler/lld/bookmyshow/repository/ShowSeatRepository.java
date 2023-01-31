@@ -21,4 +21,11 @@ public interface ShowSeatRepository extends JpaRepository<ShowSeat, Long> {
             @QueryHint(name = "javax.persistence.lock.timeout", value = "30000")
     })
     List<ShowSeat> findByShowIdAndSeatIdIn(Long showId, List<Long> seatIds);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints({
+            @QueryHint(name = "javax.persistence.lock.timeout", value = "30000")
+    })
+    List<ShowSeat> findBySeatIdIn(List<Long> seatIds);
+
 }
